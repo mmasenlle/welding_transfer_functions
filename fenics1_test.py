@@ -1,7 +1,7 @@
 from dolfin import *
 
 # Create mesh and function space
-mesh = IntervalMesh(100,0,0.4)
+mesh = IntervalMesh(80,0,0.4)
 V = FunctionSpace(mesh, "CG", 1)
 
 # Sub domain for Dirichlet boundary condition
@@ -20,13 +20,11 @@ bc = DirichletBC(V, u0, DirichletBoundary())
 Pot=2e7
 k = Constant(24)
 rho = Constant(7925)
-#Pot=2
-#k = Constant(0.000024)
-#rho = Constant(0.007925)
+
 Cp = Constant(460)
 
 h = Constant(100000)
-#h = Constant(0.001)
+
 Tinf = Constant(0)
 P = Constant(3.5449)
 
@@ -41,10 +39,15 @@ delta = PointSource(V, Point(0.05,), Pot)
 delta.apply(b1)
 
 u1 = Function(V)
-# estacionario
+
 solve(A1, u1.vector(), b1)
 
+a = rho*Cp*u*v*dx
+A = assemble(a)
+
 import numpy as np
-np.save('A1', A1.array())
-np.save('b1', b1.get_local())
-np.save('u1', u1.vector().get_local())
+np.save('KK', A1.array())
+np.save('ff', b1.get_local())
+np.save('T0', u1.vector().get_local())
+np.save('CC', A.array())
+np.save('XX', V.tabulate_dof_coordinates())
