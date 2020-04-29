@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import control
 
+
 k=24.0
 rho=7925
 cp=460
@@ -22,9 +23,12 @@ w = wf[idx]
 s = 1j*w
 ft_pot = lambda x,y,z: 1/(rho*cp)*np.exp(-(v*(-x)+np.sqrt((x**2+y**2+z**2)*(4*a*s+v**2)))/(2*a))/(2*np.pi*a*np.sqrt(x**2+y**2+z**2))
 
+import fem3d_2ss
+fem2ss = fem3d_2ss.Fem3d_fenics()
+
 U = np.fft.fft(X[:,1])
 for i in range(3,X.shape[1]):
     H1 = U * np.fft.fft(X[:,i]) / U**2
     plt.figure('Bode T/Pow ' + str(ops[i - 3]))
-    control.bode_plot((control.frd(H1[idx], w),control.frd(ft_pot(*ops[i - 3]), w)),w, dB=True)
-    plt.legend(('fem', 'fdt'))
+    control.bode_plot((control.frd(H1[idx], w), control.frd(ft_pot(*ops[i - 3]), w), fem2ss.get_ss(ops[i - 3]+(.02,.02,0))), w, dB=True)
+    plt.legend(('fem', 'fdt', 'ss'))

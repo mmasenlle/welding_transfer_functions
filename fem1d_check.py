@@ -84,8 +84,7 @@ class Fem1d:
         C2[int(no2[0, 0])], C2[int(no2[1, 0])] = no2[0, 1], no2[1, 1]
         D = 0
         self.ss_pot1, self.ss_pot2 = control.ss(A, B, C1, D), control.ss(A, B, C2, D)
-        dT = np.concatenate((np.diff(self.T0), self.T0[-1:]))
-        Bvel = np.array([np.linalg.solve(self.C, dT)]).T * cp * rho
+        Bvel = np.array([np.linalg.solve(self.C, np.gradient(self.T0))]).T * cp * rho
         self.ss_vel1, self.ss_vel2 = control.ss(A, Bvel, C1, D), control.ss(A, Bvel, C2, D)
 
 
@@ -106,8 +105,7 @@ class Fem1d_fenics:
         C2[np.where(self.X == xo2)[0][0]] = 1
         D = 0
         self.ss_pot1, self.ss_pot2 = control.ss(A, B, C1, D), control.ss(A, B, C2, D)
-        dT = np.concatenate((np.diff(self.T0), self.T0[-1:]))
-        Bvel = np.array([np.linalg.solve(self.C, dT)]).T * cp * rho
+        Bvel = np.array([np.linalg.solve(self.C, np.gradient(self.T0))]).T * cp * rho
         self.ss_vel1, self.ss_vel2 = control.ss(A, Bvel, C1, D), control.ss(A, Bvel, C2, D)
 
 

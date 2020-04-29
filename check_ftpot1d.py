@@ -31,12 +31,15 @@ class Fem1d_fenics:
         T0 = np.load('T0.npy')
         self.A = np.linalg.solve(C, -K)
         self.B = np.array([np.linalg.solve(C, f / q)]).T
-        dT = np.concatenate((np.diff(T0), T0[-1:]))
-        Bv = np.array([np.linalg.solve(C, dT)]).T * cp * rho / 2
+        self.Bv = np.array([np.linalg.solve(C, np.gradient(T0))]).T * cp * rho
     def get_ss(self, xo):
         C = np.zeros(self.X.size)
         C[np.where(self.X == xo)[0][0]] = 1
         return control.ss(self.A, self.B, C, 0)
+    def get_ss_v(self, xo):
+        C = np.zeros(self.X.size)
+        C[np.where(self.X == xo)[0][0]] = 1
+        return control.ss(self.A, self.Bv, C, 0)
 
 
 fem1df = Fem1d_fenics()
@@ -48,3 +51,12 @@ ft_pot = lambda x: (1/(rho*cp)*( np.exp((1/(2*a)*(x*v-np.sqrt(x**2*(v**2 + 4*a*b
 for xo in (.015,.02,.03,.04):
     plt.figure('Bode pot xo=' + str(xo))
     control.bode_plot((control.frd(ft_pot(xo), w), fem1df.get_ss(xo + xi)), w, dB=True)
+
+ft_vel = lambda x: (q / k * (np.exp((v * x) / (2 * a)) * (np.exp(-(x * np.sqrt(v ** 2 + 4 * a * b)) / (2 * a)) - np.exp(
+                    -(x * np.sqrt(v ** 2 + 4 * a * b + 4 * a * s)) / (2 * a)) - (v * np.exp(
+                    -(x * np.sqrt(v ** 2 + 4 * a * b)) / (2 * a))) / np.sqrt(v ** 2 + 4 * a * b) + (v * np.exp(
+                    -(x * np.sqrt(v ** 2 + 4 * a * b + 4 * a * s)) / (2 * a)))/ np.sqrt(v ** 2 + 4 * a * b + 4 * a * s))) / (2 * s))
+
+for xo in (.015,.02,.03,.04):
+    plt.figure('Bode vel xo=' + str(xo))
+    control.bode_plot((control.frd(ft_vel(xo), w), fem1df.get_ss_v(xo + xi)), w, dB=True)
