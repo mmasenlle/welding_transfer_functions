@@ -40,15 +40,19 @@ ft_vel11 = lambda x,y,z: q*np.exp(v*x/(2*a))/(4*s*np.pi*a*k*R(x,y,z))*(np.exp(-R
 ft_vel12 = lambda x,y,z: q*v*(R(x,y,z)-x)*np.exp(v*x/(2*a))/(4*s*np.pi*a*k*R(x,y,z)*R(x,y,z))*(np.exp(-R(x,y,z)*D(s)/(2*a))-np.exp(-R(x,y,z)*v/(2*a)))
 ft_vel13 = lambda x,y,z: q*v*v*np.exp(v*x/(2*a))/(4*s*np.pi*a*k*R(x,y,z))*(np.exp(-R(x,y,z)*D(s)/(2*a))/np.sqrt(-2*s*x*v + v**2)-np.exp(-R(x,y,z)*v/(2*a))/v)
 
+ft_vel14 = lambda x,y,z: q*v*(R(x,y,z)+np.abs(x))*np.exp(v*x/(2*a))/(4*s*np.pi*a*k*R(x,y,z)*R(x,y,z))*(np.exp(-R(x,y,z)*D(s)/(2*a))-np.exp(-R(x,y,z)*v/(2*a)))
 
+
+import fem3d_2ss
+fem2ss = fem3d_2ss.Fem3d_fenics()
 
 U = np.fft.fft(X[:,2])
 for i in range(3,X.shape[1]):
     H1 = U * np.fft.fft(X[:,i]) / U**2
     plt.figure('Bode T/Vel ' + str(ops[i - 3]))
-    control.bode_plot((control.frd(H1[idx], w), control.frd(ft_vel3(*ops[i - 3]), w), control.frd(ft_vel11(*ops[i - 3]), w),
-                       control.frd(ft_vel12(*ops[i - 3]), w), control.frd(ft_vel13(*ops[i - 3]), w)), w, dB=True)
-    plt.legend(('fem', 'fdt3', 'fdt11', 'fdt12', 'fdt13'))
+    control.bode_plot((control.frd(H1[idx], w), #control.frd(ft_vel3(*ops[i - 3]), w), control.frd(ft_vel11(*ops[i - 3]), w),
+                       control.frd(ft_vel14(*ops[i - 3]), w), fem2ss.get_ss_v(ops[i - 3]+(.02,.02,0))), w, dB=True)
+    plt.legend(('fem', 'fdt14', 'ss', 'fdt12', 'fdt13'))
 
 # exit(0)
 #

@@ -18,6 +18,19 @@ def check(ftest):
     return res
 
 
+# test 7
+R = sqrt(x**2+y**2+z**2)
+D = sqrt(4*a*s + v**2)
+ft_vel7 = q*v/(4*s*pi*a*a*R)*(exp((x-R)*D/(2*a))-exp((x-R)*v/(2*a)))
+nft_vel7 = exp((x-R)*D/(2*a))-exp((x-R)*v/(2*a))
+simplify(nft_vel7.subs(s,0))
+dnft_vel7 = simplify(diff(nft_vel7,s))
+dnft_vel7.subs(s,0)
+
+Tv0xyz7 = simplify(limit(ft_vel7, s, 0))
+ff_ = simplify(Tv0xyz7 - dT_0xyz)
+Tv0xyz7.equals(dT_0xyz)
+
 # test 8
 R = sqrt(x**2+y**2+z**2)
 D = sqrt(4*a*s + v**2)

@@ -2,7 +2,7 @@ from dolfin import *
 import numpy as np
 
 # Create mesh and function space
-mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 16, 8, 2)
+mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .005), 16, 8, 2)
 # np.save('mesh_X',mesh.coordinates())
 # np.save('mesh_cells',mesh.cells())
 
@@ -25,12 +25,12 @@ k = Constant(24)
 rho = 7925
 Cp = 460
 
-vel = Constant((0.002,0,0))
+vel = Constant((0.001,0,0))
 
 a1 = k*inner(nabla_grad(u), nabla_grad(v))*dx + rho*Cp*inner(vel, nabla_grad(u))*v*dx
 L1 = Constant(0)*v*dx
 
-Pot=1000
+Pot=2500
 delta = PointSource(V, Point(.02,.02,.0), Pot)
 
 K, f = assemble_system(a1, L1, bc)
