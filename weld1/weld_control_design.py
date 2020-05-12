@@ -63,8 +63,11 @@ plt.legend()
 # mig = control.tf(1, (1/10 + 1))
 plant = signal.lti(.3, (1/10, 1))
 t,y = signal.step(plant, T=tt)
+plant2 = signal.lti(.3, (1/1, 1))
+t2,y2 = signal.step(plant2, T=tt)
 plt.figure('Plant')
 plt.plot(t, 700*y, label='plant')
+plt.plot(t2, 700*y2, label='plant2')
 plt.plot(tt, temp-1100, label='temp')
 # plt.plot(tt, temp_filtered_2, label='temp_filtered_2')
 plt.ylim((0,400))
@@ -176,7 +179,8 @@ fplant = weld1.filter1.Filter1((0,0.002985),(1., -0.99004983))
 ctrl2 = 0.2 * control.tf((1,43), (1,0)) * control.tf((1,7), (1/10,1))
 # ctrl2 = 2 * control.tf((1/1,1), (1,0)) * control.tf((0/1,1), (0/2,1))
 ctrl2 = 0.25 * control.tf((1,20), (1,0)) * control.tf((1,10), (1/15,1))
-# ctrl2 = control.tf(3, 1) + control.tf(2, (1,0)) + control.tf((0,0), 1)
+ctrl2 = control.tf(3, 1) + control.tf(2, (1,0)) + control.tf((0,0), 1)
+ctrl2 = control.tf(7.5, 1) + control.tf(50, (1,0)) + control.tf((0.25,0), (0,1))
 ctrl2_d = mt.c2d(ctrl2, .001)
 fctrl = weld1.filter1.Filter1(ctrl2_d.num[0][0],ctrl2_d.den[0][0])
 b, a = signal.butter(3, 100/500, 'low')
@@ -188,12 +192,14 @@ for i in range(1,tt.size):
     sim_wfs[i] = fctrl.step(err)
     sim_temp[i] = fplant.step(sim_wfs[i])
 
-plt.figure('Simulation 7')
+plt.figure('Simulation 10')
 plt.plot(tt, temp-1100, label='temp')
 plt.plot(tt, sim_wfs, label='sim_wfs')
 plt.plot(tt, sim_temp, label='sim_temp')
 plt.legend()
 plt.grid()
+
+plt.ylim((-400,1200))
 
 
 plant = control.tf(.3, (1/10, 1))
@@ -248,6 +254,11 @@ Ki=50
 Kd=0.25
 ctrl = 1*(control.tf(Kp, 1) + control.tf(Ki, (1,0)) + control.tf((Kd,0), 1))
 ctrl2 = 0.25 * control.tf((1,20), (1,0)) * control.tf((1,10), (1/15,1))
+ctrl2 = 1*(control.tf(Kp, 1) + control.tf(Ki, (1,0)) + control.tf((Kd,0), (1/100,1)))
+plt.figure('Bode comp')
+control.bode_plot((ctrl, ctrl2), dB=True)
+plt.legend(('ctrl','ctrl2'))
+
 plt.figure('Comp ctrls')
 t1,y1 = control.step_response(ctrl*plant)
 t2,y2 = control.step_response(ctrl2*plant)
@@ -258,3 +269,52 @@ plt.grid()
 plt.figure('Bode comp')
 control.bode_plot((ctrl*plant,ctrl2*plant,(control.tf(1, 1) + control.tf(1, (1,0)) + control.tf((.1,0), 1))*plant), dB=True)
 plt.legend(('pid','ft','pid*plant','ft*plant'))
+
+
+###################### PLC algrithm simulation
+
+tsp = 200
+sim_wfs = np.zeros(tt.size)
+sim_temp = np.zeros(tt.size)
+fplant = weld1.filter1.Filter1((0,0.002985),(1., -0.99004983))
+ctrl2 = 0.2 * control.tf((1,43), (1,0)) * control.tf((1,7), (1/10,1))
+# ctrl2 = 2 * control.tf((1/1,1), (1,0)) * control.tf((0/1,1), (0/2,1))
+ctrl2 = 0.25 * control.tf((1,20), (1,0)) * control.tf((1,10), (1/15,1))
+ctrl2 = control.tf(3, 1) + control.tf(2, (1,0)) + control.tf((0,0), 1)
+ctrl2 = control.tf(7.5, 1) + control.tf(50, (1,0)) + control.tf((0.25,0), (0,1))
+ctrl2_d = mt.c2d(ctrl2, .001)
+fctrl = weld1.filter1.Filter1(ctrl2_d.num[0][0],ctrl2_d.den[0][0])
+
+
+Kp=7.5
+Ki=50
+Kd=0.5
+Fd=.1
+int_error = 0
+# last_error = 0
+d_state = 0
+plant = control.tf(.3, (1/10, 1))
+plant = control.tf(.3, (1/5, 1))
+plant_d = control.matlab.c2d(plant, .001)
+fplant = weld1.filter1.Filter1((0,plant_d.num[0][0][0]),plant_d.den[0][0])
+for i in range(1,tt.size):
+    tsp = max(temp[i] - 1100, 0)
+    # err = tsp - ftemp.step(sim_temp[i-1])
+    error = tsp - sim_temp[i - 1]  # ftemp.step(sim_temp[i-1])
+    # sim_wfs[i] = fctrl.step(err)
+    int_error = int_error + (error * 0.001)
+    d = Kd*Fd*error + d_state
+    d_state = Kd*Fd*error + (1 - Fd * .001) * d
+    # sim_wfs[i] = (Kp * error) + (Ki * int_error) + (Kd * (error - last_error) * 1000.0);
+    sim_wfs[i] = (Kp * error) + (Ki * int_error) + d
+    # last_error = error
+    wfs1 = max(min(sim_wfs[i],1000), 200)
+    sim_temp[i] = fplant.step(wfs1)
+
+plt.figure('Plc Simulation 3')
+plt.plot(tt, temp-1100, label='temp')
+plt.plot(tt, sim_wfs, label='sim_wfs')
+plt.plot(tt, sim_temp, label='sim_temp')
+plt.legend()
+plt.grid()
+plt.ylim((0,1200))
