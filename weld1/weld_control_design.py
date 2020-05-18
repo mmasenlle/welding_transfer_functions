@@ -287,7 +287,7 @@ fctrl = weld1.filter1.Filter1(ctrl2_d.num[0][0],ctrl2_d.den[0][0])
 
 
 Kp=7.5
-Ki=50
+Ki=10
 Kd=0.5
 Fd=.1
 int_error = 0
@@ -309,12 +309,26 @@ for i in range(1,tt.size):
     sim_wfs[i] = (Kp * error) + (Ki * int_error) + d
     # last_error = error
     wfs1 = max(min(sim_wfs[i],1000), 200)
+    if sim_wfs[i] > 1000:# or sim_wfs[i] > 200: # antiwindup
+        int_error = int_error - (error * 0.001)
     sim_temp[i] = fplant.step(wfs1)
 
-plt.figure('Plc Simulation 3')
+plt.figure('Plc Simulation 6')
 plt.plot(tt, temp-1100, label='temp')
 plt.plot(tt, sim_wfs, label='sim_wfs')
 plt.plot(tt, sim_temp, label='sim_temp')
 plt.legend()
 plt.grid()
 plt.ylim((0,1200))
+
+
+plt.figure('Seguimiento consigna')
+plt.title('Seguimiento consigna')
+plt.plot(tt, temp, label='consigna')
+# plt.plot(tt, sim_wfs, label='sim_wfs')
+plt.plot(tt, sim_temp+1100, label='plant2')
+plt.legend()
+plt.grid()
+plt.ylim((1000,1500))
+plt.xlabel('Time (s)')
+plt.ylabel('Temp (C)')

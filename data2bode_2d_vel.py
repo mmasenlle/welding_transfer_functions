@@ -144,15 +144,16 @@ if False:
     control.bode_plot(control.frd(ft_vel1(.01,0), w), w, dB=True)
 
 U = np.fft.fft(X[:,2])
-for i in range(3,X.shape[1]):
+for i in range(3,X.shape[1]-12):
     H1 = U * np.fft.fft(X[:,i]) / U**2
-    plt.figure('Bode T/Pow ' + str(ops[i - 3]))
+    plt.figure('Bode T/V ' + str(ops[i - 3]))
+    plt.title('Bode T/V output point=' + str(ops[i - 3]))
     control.bode_plot((control.frd(H1[idx], w), control.frd(ft_vel12(*ops[i - 3]), w)),w, dB=True)
                        # control.frd(ft_vel_a1(*ops[i - 3]), w),control.frd(ft_vel_a2(*ops[i - 3]), w),
                        # control.frd(ft_vel3(*ops[i - 3]), w), control.frd(ft_vel6(*ops[i - 3]), w),
                        # control.frd(ft_vel13(*ops[i - 3]), w),
                        # control.frd(ft_vel12(*ops[i - 3]), w), control.frd(ft_vel12ab(*ops[i - 3]), w)),w, dB=True)
-    plt.legend(('fem', 'fdt12', 'fdt12ab'))
+    plt.legend(('fem', 'fdt', 'fdt12ab'))
     plt.axvline(v/ops[i-3][0], color='yellow', linestyle='dashed')
     print(ft_vel0(*ops[i - 3]), np.abs(ft_vel1_(*ops[i - 3])[1]), np.abs(H1[1]))
 

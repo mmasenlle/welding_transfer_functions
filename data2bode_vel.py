@@ -51,8 +51,8 @@ for i in range(3,X.shape[1]):
     H1 = U * np.fft.fft(X[:,i]) / U**2
     plt.figure('Bode T/Vel ' + str(ops[i - 3]))
     control.bode_plot((control.frd(H1[idx], w), #control.frd(ft_vel3(*ops[i - 3]), w), control.frd(ft_vel11(*ops[i - 3]), w),
-                       control.frd(ft_vel14(*ops[i - 3]), w), fem2ss.get_ss_v(ops[i - 3]+(.02,.02,0))), w, dB=True)
-    plt.legend(('fem', 'fdt14', 'ss', 'fdt12', 'fdt13'))
+                       control.frd(ft_vel12(*ops[i - 3]), w), fem2ss.get_ss_v(ops[i - 3]+(.02,.02,0))), w, dB=True)
+    plt.legend(('fem', 'fdt12', 'ss', 'fdt12', 'fdt13'))
 
 # exit(0)
 #
