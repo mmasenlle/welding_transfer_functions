@@ -8,11 +8,19 @@ class Fem3d_fenics:
         self.A = np.load('AA3d.npy')
         self.B = np.load('BB3d.npy')
         self.Bv = np.load('BB3dv.npy')
+    def get_C(self, xo):
+        C = np.zeros(self.X.shape[0])
+        X_xo = self.X - np.array(xo)
+        idx = np.argwhere(np.all((X_xo) == 0, axis=1))
+        if idx.size:
+            C[idx[0][0]] = 1
+        else:
+            dist = np.sqrt(X_xo[:,0]**2 + X_xo[:,1]**2 + X_xo[:,2]**2)
+            idx = np.argpartition(dist, 4)[:4]
+            distp = np.prod(dist[idx])
+            C[idx] = (distp/np.sum(distp/dist[idx])) / dist[idx]
+        return C
     def get_ss(self, xo):
-        C = np.zeros(self.X.shape[0])
-        C[np.argwhere(np.all((self.X-np.array(xo))==0, axis=1))[0][0]] = 1
-        return control.ss(self.A, self.B, C, 0)
+        return control.ss(self.A, self.B, self.get_C(xo), 0)
     def get_ss_v(self, xo):
-        C = np.zeros(self.X.shape[0])
-        C[np.argwhere(np.all((self.X-np.array(xo))==0, axis=1))[0][0]] = 1
-        return control.ss(self.A, self.Bv, C, 0)
+        return control.ss(self.A, self.Bv, self.get_C(xo), 0)
