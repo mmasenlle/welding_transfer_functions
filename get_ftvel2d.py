@@ -4,6 +4,8 @@ init_printing(use_unicode=True)
 
 s,x,y,z = symbols('s x y z', real=True)
 a,b,q,v,K = symbols('a b q v K', real=True, positive=True)
+a,b,q,v,K = symbols('a b q v K', real=True)
+
 
 T_0xy = exp(v*x/(2*a))/(2*pi*K)*besselk(0,(1/(2*a)*sqrt((x**2+y**2)*(4*a*b+v**2))))*q
 dT_0xy = simplify(diff(T_0xy,v))
@@ -75,9 +77,14 @@ simplify(diff(v*besselk(0,R*Ds/(2*a)) + x*besselk(0,R*D/(2*a))*s/(x*s/v + 1), s)
 simplify(diff(v*besselk(0,R*Ds/(2*a)) + x*besselk(0,R*D/(2*a))*(s + 1), s).subs(s,0))
 
 
+chi = (v)*besselk(0,(R/(2*a))*sqrt(4*a*s+v^2)) + (x/R)*(2*abs(v)-v^2/sqrt(4*a*s+v^2))*besselk(1,(R/(2*a))*sqrt(4*a*s+v^2))
+chi0 = subs(chi,s,0);
+Gv = (q*exp(-v*x/(2*a))/(4*pi*a*k*s))*(chi-chi0);
 
+chi = v*besselk(0,R*Ds/(2*a)) + (x/R)*(2*abs(v)-v**2/Ds)*besselk(1,R*Ds/(2*a))
+latex(chi)
 
-
+simplify(diff(v*besselk(0,R*Ds/(2*a)) + (x/R)*(2*abs(v)-v**2/Ds)*besselk(1,R*Ds/(2*a)), s).subs(s,0))
 
 
 
@@ -161,6 +168,8 @@ nft_vel1 = v*(besselk(0,R*Ds/(2*a)) - besselk(0,R*D/(2*a))) \
 
 nft_vel1 = (v+ x*2*a/R/R)*(besselk(0,R*Ds/(2*a)) - besselk(0,R*D/(2*a))) \
            - x*D/R*(besselk(1,R*Ds/(2*a)) + besselk(1,R*D/(2*a)))
+
+nft_vel1 = v*besselk(0,R*Ds/(2*a)) - (x/R)*(2*abs(v)-v**2/Ds)*besselk(1,R*Ds/(2*a)) - v*besselk(0,R*D/(2*a)) + (x/R)*(2*abs(v)-v**2/D)*besselk(1,R*D/(2*a))
 
 
 dft_vel1 = s

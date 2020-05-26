@@ -33,7 +33,7 @@ rho = Constant(7925)
 #k = Constant(0.000024)
 #rho = Constant(0.007925)
 Cp = Constant(460)
-h = Constant(100)
+h = Constant(100000)
 
 v_nom = 0.002
 vel = Constant((v_nom,0))
@@ -92,7 +92,7 @@ t = 0.0
 # print (repr(t), repr(Pot), repr(v_nom), repr(u1.vector()[idxT1]), repr(u1.vector()[idxT2]), repr(u1.vector()[idxT3]), repr(u1.vector()[idxT4]), file=sys.stderr)
 output_data = np.array([t,Pot,v_nom]+[u1.vector()[i] for i in opidx])
 
-N = 1024*512
+N = 1024*128
 dt = .0002
 T = N*dt
 freq = .0
