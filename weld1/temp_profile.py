@@ -9,33 +9,37 @@ fem2ss = fem3d_2ss.Fem3d_fenics()
 plant = fem2ss.get_ss((.02,.025,0))
 plant_d = control.sample_system(plant, .001)
 
-power = 500
-
+# Temp profiles along x and y
+power = 1000
 nds1 = np.argwhere((fem2ss.X[:,1]==0.02)&(fem2ss.X[:,2]==0))
+nds2 = np.argwhere((fem2ss.X[:,0]==0.02)&(fem2ss.X[:,2]==0))
 T = np.zeros(fem2ss.B.shape)
-# plt.plot(fem2ss.X[nds1,0], T[nds1,0])
-
-fig = plt.figure('Temp profile')
-ax = fig.add_subplot(111)
-ax.clear()
-ax.set_xlim((0,.08))
-ax.set_ylim((0,3000))
-line, = ax.plot(fem2ss.X[nds1,0], T[nds1,0], label='temp')
-ax.set_title('T (t=0 s)')
-ax.legend()
-ax.grid()
+fig = plt.figure('Temp profiles')
+ax1 = fig.add_subplot(111)
+ax1.clear()
+ax1.set_xlim((0,.08))
+ax1.set_ylim((0,3000))
+line1, = ax1.plot(fem2ss.X[nds1,0], T[nds1,0], label='T along x')
+line2, = ax1.plot(fem2ss.X[nds2,1], T[nds2,0], label='T along y')
+ax1.set_title('T (t=0 s)')
+ax1.legend()
+ax1.grid()
+ax1.set_xlabel('(m)')
+ax1.set_ylabel('(C)')
 
 for i in range(10001):
     T = plant_d.A @ T + plant_d.B * power
     if i % 50 == 0:
-        line.set_ydata(T[nds1,0])
-        ax.set_title('T (t='+str(round(i/1000, 2))+' s)')
+        line1.set_ydata(T[nds1,0])
+        line2.set_ydata(T[nds2, 0])
+        ax1.set_title('T (t='+str(round(i/1000, 2))+' s)')
         fig.canvas.draw()
         fig.canvas.flush_events()
 
 
 
 # Surface
+power = 500
 nds2 = np.argwhere((fem2ss.X[:,2]==0))
 T = np.zeros(fem2ss.B.shape)
 from scipy.interpolate import interp2d
