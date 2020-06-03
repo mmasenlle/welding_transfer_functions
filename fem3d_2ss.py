@@ -3,11 +3,11 @@ import control
 
 # space state system from fem matrices (fenics3d_mesh.py)
 class Fem3d_fenics:
-    def __init__(self):
-        self.X = np.load('XX3d.npy')
-        self.A = np.load('AA3d.npy')
-        self.B = np.load('BB3d.npy')
-        self.Bv = np.load('BB3dv.npy')
+    def __init__(self, path_data='data/'):
+        self.X = np.load(path_data + 'XX3d.npy')
+        self.A = np.load(path_data + 'AA3d.npy')
+        self.B = np.load(path_data + 'BB3d.npy')
+        self.Bv = np.load(path_data + 'BB3dv.npy')
     def get_C(self, xo):
         C = np.zeros(self.X.shape[0])
         X_xo = self.X - np.array(xo)

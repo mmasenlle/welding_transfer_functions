@@ -2,7 +2,7 @@ from dolfin import *
 import numpy as np
 
 # Create mesh and function space
-mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 32, 16, 4)
+mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 64, 32, 8)
 # np.save('mesh_X',mesh.coordinates())
 # np.save('mesh_cells',mesh.cells())
 
@@ -25,7 +25,7 @@ k = Constant(24)
 rho = 7925
 Cp = 460
 
-vel = Constant((0.005,0,0))
+vel = Constant((0.002,0,0))
 
 a1 = k*inner(nabla_grad(u), nabla_grad(v))*dx + rho*Cp*inner(vel, nabla_grad(u))*v*dx
 L1 = Constant(0)*v*dx
@@ -49,9 +49,19 @@ a = rho*Cp*inner(Constant((1,0,0)), nabla_grad(u))*v*dx
 Kv = assemble(a)
 # bc.apply(Kv)
 
-AA3d = - np.linalg.solve(C.array(), K.array())
-BB3d = np.array([np.linalg.solve(C.array(), f.get_local() / Pot)]).T
-BB3dv = - np.array([np.linalg.solve(C.array(), Kv.array() @ T0.vector().get_local())]).T
+
+from scipy.sparse import csr_matrix, save_npz
+from scipy.sparse.linalg import spsolve
+C_mat = as_backend_type(C).mat()
+K_mat = as_backend_type(K).mat()
+Kv_mat = as_backend_type(Kv).mat()
+C_sparray = csr_matrix(C_mat.getValuesCSR()[::-1], shape = C_mat.size)
+K_sparray = csr_matrix(K_mat.getValuesCSR()[::-1], shape = K_mat.size)
+Kv_sparray = csr_matrix(Kv_mat.getValuesCSR()[::-1], shape = Kv_mat.size)
+
+AA3d = -spsolve(C_sparray, K_sparray)
+BB3d = np.array([spsolve(C_sparray, f.get_local() / Pot)]).T
+BB3dv = -np.array([spsolve(C_sparray, K_sparray @ T0.vector().get_local())]).T
 
 n = V.dim()
 d = mesh.geometry().dim()
@@ -59,6 +69,7 @@ dof_coordinates = V.tabulate_dof_coordinates()
 dof_coordinates.resize((n, d))
 
 np.save('XX3d', dof_coordinates)
-np.save('AA3d', AA3d)
+# np.save('AA3d', AA3d)
+save_npz('AA3d', AA3d)
 np.save('BB3d', BB3d)
 np.save('BB3dv', BB3dv)
