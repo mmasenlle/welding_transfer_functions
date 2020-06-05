@@ -4,10 +4,14 @@ import control
 # space state system from fem matrices (fenics3d_mesh.py)
 class Fem3d_fenics:
     def __init__(self, path_data='data/'):
-        self.X = np.load(path_data + 'XX3d.npy')
-        self.A = np.load(path_data + 'AA3d.npy')
-        self.B = np.load(path_data + 'BB3d.npy')
-        self.Bv = np.load(path_data + 'BB3dv.npy')
+        try:
+            self.X = np.load(path_data + 'XX3d.npy')
+            self.A = np.load(path_data + 'AA3d.npy')
+            self.B = np.load(path_data + 'BB3d.npy')
+            self.Bv = np.load(path_data + 'BB3dv.npy')
+            self.Teq = np.load(path_data + 'T03d.npy')
+        except Exception as error:
+            print('Fem3d_fenics::init->error: ', error)
     def get_C(self, xo):
         C = np.zeros(self.X.shape[0])
         X_xo = self.X - np.array(xo)

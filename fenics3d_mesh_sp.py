@@ -59,7 +59,22 @@ C_sparray = csr_matrix(C_mat.getValuesCSR()[::-1], shape = C_mat.size)
 K_sparray = csr_matrix(K_mat.getValuesCSR()[::-1], shape = K_mat.size)
 Kv_sparray = csr_matrix(Kv_mat.getValuesCSR()[::-1], shape = Kv_mat.size)
 
-AA3d = -spsolve(C_sparray, K_sparray)
+save_npz('C_sp', C_sparray)
+save_npz('K_sp', K_sparray)
+
+exit(0)
+
+from scipy.sparse import load_npz, save_npz
+from scipy.sparse.linalg import spsolve
+C_sparray = load_npz('C_sp.npz')
+K_sparray = load_npz('K_sp.npz')
+print('Converting sparse csr to csc')
+C_sp = C_sparray.tocsc()
+K_sp = K_sparray.tocsc()
+print('Solving C\\K')
+AA3d = -spsolve(C_sp, K_sp)
+print('Saving')
+save_npz('AA3d_sp', AA3d)
 BB3d = np.array([spsolve(C_sparray, f.get_local() / Pot)]).T
 BB3dv = -np.array([spsolve(C_sparray, K_sparray @ T0.vector().get_local())]).T
 

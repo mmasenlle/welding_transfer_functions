@@ -22,6 +22,7 @@ u0 = Constant(0.0)
 bc = DirichletBC(V, u0, DirichletBoundary())
 
 k = Constant(24)
+# k = Constant(30)
 rho = 7925
 Cp = 460
 
@@ -30,7 +31,7 @@ vel = Constant((0.005,0,0))
 a1 = k*inner(nabla_grad(u), nabla_grad(v))*dx + rho*Cp*inner(vel, nabla_grad(u))*v*dx
 L1 = Constant(0)*v*dx
 
-Pot=1000
+Pot=1500
 delta = PointSource(V, Point(.02,.02,.0), Pot)
 
 K, f = assemble_system(a1, L1, bc)
@@ -62,3 +63,4 @@ np.save('XX3d', dof_coordinates)
 np.save('AA3d', AA3d)
 np.save('BB3d', BB3d)
 np.save('BB3dv', BB3dv)
+np.save('T03d', np.array([T0.vector().get_local()]).T)

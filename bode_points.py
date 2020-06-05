@@ -9,13 +9,15 @@ fem2ss_32 = fem3d_2ss.Fem3d_fenics('data/v5/32x16x4/')
 
 inp = np.array((.02, .02, 0))
 pts = ((0,0.003,0),(0,0.005,0),(0,0.010,0),(0.005,0,0),(0.010,0,0),(0.020,0,0))
-w = np.logspace(-3,2,100)
+w = np.logspace(-3,1,100)
 
 for p in pts[:2]:
     plt.figure('Bode Comp ' + str(p))
     control.bode_plot((fem2ss.get_ss(inp + p), fem2ss_32.get_ss(inp + p)), w, dB=True)
     plt.legend(('16', '32'))
 
+
+fem2ss = fem3d_2ss.Fem3d_fenics('data/v5/32x16x4/1500/')
 
 systemsQ = list()
 systemsV = list()
@@ -47,3 +49,7 @@ vars['C_10_00'] = fem2ss.get_C((.03,.02,0))
 vars['C_20_00'] = fem2ss.get_C((.04,.02,0))
 import scipy.io
 scipy.io.savemat('ss_vars.mat', vars)
+
+bodes_data=[]
+for p in pts:
+    bodes_data.append(control.bode(fem2ss.get_ss(inp + p), w, dB=True, Plot=False))
