@@ -2,9 +2,10 @@
 import sys
 from dolfin import *
 import numpy as np
+from mpi4py import MPI
 
 # Create mesh and function space
-mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 32, 16, 4)
+mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 320, 160, 40)
 V = FunctionSpace(mesh, "CG", 1)
 
 # Sub domain for Dirichlet boundary condition
@@ -20,7 +21,7 @@ v = TestFunction(V)
 u0 = Constant(0.0)
 bc = DirichletBC(V, u0, DirichletBoundary())
 
-Pot=1000
+Pot=1500
 ipx=.02
 ipy=.02
 inp = Point(ipx,ipy,.0)
@@ -32,7 +33,7 @@ rho = Constant(7925)
 #rho = Constant(0.007925)
 Cp = Constant(460)
 
-v_nom = 0.002
+v_nom = 0.005
 vel = Constant((v_nom,0,0))
 
 # a1 = k*inner(nabla_grad(u), nabla_grad(v))*dx + rho*Cp*vel*u.dx(0)*v*dx + P*h*inner(u,v)*dx
@@ -58,14 +59,22 @@ dof_coordinates.resize((n, d))
 output_points_vel = ((-.01,0,0),(.01,0,0),(.02,0,0),(.04,0,0),
                  (0,-.005,0),(0,.005,0),(0,.01,0),(0,0,.005),
                  (.01,.005,0),(-.01,.005,0),(.01,.01,0),(.01,0,.005))
-np.save('output_points_vel', output_points_vel)
-
+print('MPI Rank:', MPI.COMM_WORLD.Get_rank(), '/', MPI.COMM_WORLD.Get_size())
+if MPI.COMM_WORLD.Get_rank() == 0:
+    np.save('output_points_vel_all', output_points_vel)
 output_points = np.array(output_points_vel) + np.array((ipx,ipy,0))
 
 opidx=[]
+o_points=[]
 for op in output_points:
-    opidx.append(np.argwhere(np.all((dof_coordinates-np.array(op))==0, axis=1))[0][0])
-    print("T(", dof_coordinates[opidx[-1]], ",t=0):", u1.vector()[opidx[-1]], "K")
+    idx = np.argwhere(np.all((dof_coordinates - np.array(op)) == 0, axis=1))
+    if idx.size > 0:
+        opidx.append(idx[0][0])
+        o_points.append(op)
+        print("T(", dof_coordinates[opidx[-1]], ",t=0):", u1.vector()[opidx[-1]], "K")
+    else:
+        print("Point ", op, "not found in this mesh")
+np.save('output_points_vel_' + str(MPI.COMM_WORLD.Get_rank()), o_points)
 print("Tmax:", np.max(u1.vector().get_local()), "K")
 
 # transitorio
@@ -107,7 +116,7 @@ for ii in range(N-1):
         print("t=", round(t,3), 'of', T, 'seconds')
 
 # print ("];", file=sys.stderr)
-np.save('output_data_vel', output_data)
+np.save('output_data_vel_' + str(MPI.COMM_WORLD.Get_rank()), output_data)
 for opi in opidx:
     print("T(", dof_coordinates[opi], ",t=",T,"):", uf.vector()[opi], "K")
 print("Tmax:", np.max(uf.vector().get_local()), "K")

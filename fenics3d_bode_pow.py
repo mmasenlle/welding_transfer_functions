@@ -3,9 +3,11 @@
 import sys
 from dolfin import *
 import numpy as np
+from mpi4py import MPI
+
 
 # Create mesh and function space
-mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 32, 16, 4)
+mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 128, 64, 16)
 V = FunctionSpace(mesh, "CG", 1)
 
 # Sub domain for Dirichlet boundary condition
@@ -58,14 +60,22 @@ dof_coordinates.resize((n, d))
 
 output_points0 = ((-.01,0,0),(.01,0,0),(.02,0,0),(.04,0,0),
                  (0,-.005,0),(0,.005,0),(0,.01,0),(0,0,.005))
-np.save('output_points0', output_points0)
+print('MPI Rank:', MPI.COMM_WORLD.Get_rank(), '/', MPI.COMM_WORLD.Get_size())
+if MPI.COMM_WORLD.Get_rank() == 0:
+    np.save('output_points_all', output_points0)
 output_points = np.array(output_points0) + np.array((ipx,ipy,0))
 
-
 opidx=[]
+o_points=[]
 for op in output_points:
-    opidx.append(np.argwhere(np.all((dof_coordinates-np.array(op))==0, axis=1))[0][0])
-    print("T(", dof_coordinates[opidx[-1]], ",t=0):", u1.vector()[opidx[-1]], "K")
+    idx = np.argwhere(np.all((dof_coordinates - np.array(op)) == 0, axis=1))
+    if idx.size > 0:
+        opidx.append(idx[0][0])
+        o_points.append(op)
+        print("T(", dof_coordinates[opidx[-1]], ",t=0):", u1.vector()[opidx[-1]], "K")
+    else:
+        print("Point ", op, "not found in this mesh")
+np.save('output_points_' + str(MPI.COMM_WORLD.Get_rank()), o_points)
 print("Tmax:", np.max(u1.vector().get_local()), "K")
 
 # transitorio
@@ -83,6 +93,7 @@ t = 0.0
 output_data = np.array([t,Pot,v_nom]+[u1.vector()[i] for i in opidx])
 
 N = 1024*1024
+N = 16
 dt = .001
 T = N*dt
 freq = .0
@@ -107,7 +118,7 @@ for ii in range(N-1):
         print("t=", round(t,3), 'of', T, 'seconds')
 
 # print ("];", file=sys.stderr)
-np.save('output_data_pow', output_data)
+np.save('output_data_pow_' + str(MPI.COMM_WORLD.Get_rank()), output_data)
 for opi in opidx:
     print("T(", dof_coordinates[opi], ",t=",T,"):", uf.vector()[opi], "K")
 print("Tmax:", np.max(uf.vector().get_local()), "K")

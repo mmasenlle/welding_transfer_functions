@@ -1,13 +1,16 @@
 from dolfin import *
 import numpy as np
 
+# https://people.sc.fsu.edu/~jburkardt/py_src/dolfin-convert/dolfin-convert.html
 # Create mesh and function space
-mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 32, 16, 4)
+# mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 40, 20, 5)
+mesh = Mesh('meshes/box.xml')
 # np.save('mesh_X',mesh.coordinates())
 # np.save('mesh_cells',mesh.cells())
 
 
 V = FunctionSpace(mesh, "CG", 1)
+# V = FunctionSpace(mesh, "Q", 1)
 # Sub domain for Dirichlet boundary condition
 class DirichletBoundary(SubDomain):
     def inside(self, x, on_boundary):
