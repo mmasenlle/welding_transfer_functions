@@ -1,3 +1,4 @@
+# docker run -ti -v C:/src/sympy:/home/fenics/shared -w /home/fenics/shared fenics_ctrl
 from dolfin import *
 import numpy as np
 
@@ -9,7 +10,7 @@ mesh = Mesh('meshes/box.xml')
 # np.save('mesh_cells',mesh.cells())
 
 
-V = FunctionSpace(mesh, "CG", 1)
+V = FunctionSpace(mesh, "CG", 2)
 # V = FunctionSpace(mesh, "Q", 1)
 # Sub domain for Dirichlet boundary condition
 class DirichletBoundary(SubDomain):
