@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-cd = np.load('data/ctrl_data.npy')
+cd = np.load('ctrl_data.npy')
 fig = plt.figure('Control 1')
 labels_unit_scale=(('Power','(w)',3000),('Speed','(m/s)',0.01),('T1','(ºC)',2000),('T2','(ºC)',1000))
 axs,line,n=[],[],len(labels_unit_scale)
@@ -14,5 +14,15 @@ for i in range(n):
     ax.grid()
     axs.append(ax)
     line.append(lin)
-axs[0].set_title('Control temperature (0 s)')
+axs[0].set_title('Control temperature')
 axs[3].set_xlabel('(s)')
+
+fig = plt.figure('Control 2')
+plt.plot(cd[:,0], cd[:,1], label='Power (w)')
+plt.plot(cd[:,0], cd[:,2]*2e5, label='Speed (um/s/5)')
+plt.plot(cd[:,0], cd[:,3], label='T1 (ºC)')
+plt.plot(cd[:,0], cd[:,4], label='T2 (ºC)')
+plt.title('Control temperature')
+plt.xlabel('(s)')
+plt.grid()
+plt.legend()

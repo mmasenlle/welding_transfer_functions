@@ -29,6 +29,13 @@ ipx=.02
 ipy=.02
 inp = Point(ipx,ipy,.0)
 
+v_nom = 0.005
+
+# Equilibrium
+Pot=1481.6279283811557
+v_nom=0.004253872403429254
+
+
 k = Constant(24)
 rho = Constant(7925)
 #Pot=2
@@ -36,8 +43,9 @@ rho = Constant(7925)
 #rho = Constant(0.007925)
 Cp = Constant(460)
 
-v_nom = 0.005
+
 vel = Constant((v_nom,0,0))
+
 
 # a1 = k*inner(nabla_grad(u), nabla_grad(v))*dx + rho*Cp*vel*u.dx(0)*v*dx + P*h*inner(u,v)*dx
 # L1 = Constant(0)*v*dx + P*h*Tinf*v*dx
@@ -50,7 +58,7 @@ delta.apply(b1)
 
 u1 = Function(V)
 
-# estacionario
+# Stationary
 solve(A1, u1.vector(), b1)
 # print ("max: ", max(u1.vector()),"(K), T(x=0.2): ", u1.vector()[500]) # 137.15
 
@@ -82,18 +90,22 @@ T = 50
 # Controllers
 ctrl1_d = control.sample_system(control.tf(1, (1, 0)), dt)
 ctrl1 = filter1.Filter1((0,ctrl1_d.num[0][0][0]),ctrl1_d.den[0][0])
-ctrl2_d = control.sample_system(control.tf(-0.0002, (1, 0)), dt)
+ctrl2_d = control.sample_system(control.tf(-0.00005, (1, 0)), dt)
 ctrl2 = filter1.Filter1((0,ctrl2_d.num[0][0][0]),ctrl2_d.den[0][0])
+
+# Perturbations
+k = Constant(30)
 
 output_data = np.array([t,Pot,v_nom,u1(p1),u1(p2)])
 
 tn=1
 T1,T2=u_prev(p1),u_prev(p2)
+er1,er2=T1ref - T1,T2ref - T2
 stable=0
 while t <= T:
     t += dt
-    Pt = Pot + ctrl1.step(T1ref - T1)
-    vt = v_nom + ctrl2.step(T2ref - T2)
+    Pt = Pot + ctrl1.step(er1)
+    vt = v_nom + ctrl2.step(er2)
     a = rho*Cp*u*v*dx + dt*k*inner(nabla_grad(u), nabla_grad(v))*dx + dt*rho*Cp*inner(Constant((vt,0,0)), nabla_grad(u))*v*dx
     L = rho*Cp*u_prev*v*dx
     b = assemble(L, tensor=b)
@@ -104,11 +116,12 @@ while t <= T:
     solve(A, uf.vector(), b)
     u_prev.assign(uf)
     T1, T2 = u_prev(p1), u_prev(p2)
-    output_data = np.vstack((output_data, [t, Pt, vt, uf(p1), uf(p2)]))
-    if T1**2+T2**2 < .01:
+    output_data = np.vstack((output_data, [t, Pt, vt, T1, T2]))
+    er1, er2 = T1ref - T1, T2ref - T2
+    if er1**2+er2**2 < .01:
         stable += 1
         if stable > 100:
-            print("Output stable t=", round(t, 3), 'of', T, 'seconds')
+            print("Stable output t=", round(t, 3), 'of', T, 'seconds T1:', T1, 'T2:', T2)
             break
     else:
         stable = 0
