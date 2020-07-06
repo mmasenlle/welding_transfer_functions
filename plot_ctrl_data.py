@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-cd = np.load('ctrl_data.npy')
+cd = np.load('data/ctrl_data_2.npy')
+# cd = np.load('data/ctrl_data_pert.npy')
 fig = plt.figure('Control 1')
 labels_unit_scale=(('Power','(w)',3000),('Speed','(m/s)',0.01),('T1','(ºC)',2000),('T2','(ºC)',1000))
 axs,line,n=[],[],len(labels_unit_scale)

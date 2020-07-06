@@ -6,6 +6,19 @@ import control
 import filter1
 from mpi4py import MPI
 
+def on_message(mqttc, obj, msg):
+    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+
+mqtt_client=None
+b_mqtt = True
+if b_mqtt:
+    import paho.mqtt.client as mqtt
+    mqtt_client = mqtt.Client()
+    mqtt_client.on_message = on_message
+    mqtt_client.connect('172.24.1.45')
+    mqtt_client.subscribe("ctrl3d_cmd", 0)
+    mqtt_client.loop_start()
+
 # Create mesh and function space
 # mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 320, 160, 40)
 mesh = Mesh('meshes/box.xml')
@@ -84,17 +97,17 @@ uf = Function(V)
 
 
 t = 0.0
-dt = .001
+dt = .01
 T = 50
 
 # Controllers
-ctrl1_d = control.sample_system(control.tf(1, (1, 0)), dt)
+ctrl1_d = control.sample_system(control.tf(2, (1, 0)), dt)
 ctrl1 = filter1.Filter1((0,ctrl1_d.num[0][0][0]),ctrl1_d.den[0][0])
-ctrl2_d = control.sample_system(control.tf(-0.00005, (1, 0)), dt)
+ctrl2_d = control.sample_system(control.tf(-0.0001, (1, 0)), dt)
 ctrl2 = filter1.Filter1((0,ctrl2_d.num[0][0][0]),ctrl2_d.den[0][0])
 
 # Perturbations
-k = Constant(30)
+k = Constant(18)
 
 output_data = np.array([t,Pot,v_nom,u1(p1),u1(p2)])
 
@@ -117,10 +130,12 @@ while t <= T:
     u_prev.assign(uf)
     T1, T2 = u_prev(p1), u_prev(p2)
     output_data = np.vstack((output_data, [t, Pt, vt, T1, T2]))
+    if b_mqtt:
+        mqtt_client.publish('ctrl3d', output_data[-1,:].tobytes())
     er1, er2 = T1ref - T1, T2ref - T2
     if er1**2+er2**2 < .01:
         stable += 1
-        if stable > 100:
+        if stable > 20:
             print("Stable output t=", round(t, 3), 'of', T, 'seconds T1:', T1, 'T2:', T2)
             break
     else:

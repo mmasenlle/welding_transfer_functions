@@ -33,7 +33,7 @@ rho = Constant(7925)
 #k = Constant(0.000024)
 #rho = Constant(0.007925)
 Cp = Constant(460)
-h = Constant(100000)
+h = Constant(1000)
 
 v_nom = 0.002
 vel = Constant((v_nom,0))
