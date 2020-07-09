@@ -4,8 +4,8 @@ import numpy as np
 
 # https://people.sc.fsu.edu/~jburkardt/py_src/dolfin-convert/dolfin-convert.html
 # Create mesh and function space
-# mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 40, 20, 5)
-mesh = Mesh('meshes/box.xml')
+mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 32, 16, 4)
+# mesh = Mesh('meshes/box2.xml')
 # np.save('mesh_X',mesh.coordinates())
 # np.save('mesh_cells',mesh.cells())
 
@@ -54,6 +54,7 @@ a = rho*Cp*inner(Constant((1,0,0)), nabla_grad(u))*v*dx
 Kv = assemble(a)
 # bc.apply(Kv)
 
+print('About to solve AA')
 AA3d = - np.linalg.solve(C.array(), K.array())
 BB3d = np.array([np.linalg.solve(C.array(), f.get_local() / Pot)]).T
 BB3dv = - np.array([np.linalg.solve(C.array(), Kv.array() @ T0.vector().get_local())]).T
@@ -63,8 +64,13 @@ d = mesh.geometry().dim()
 dof_coordinates = V.tabulate_dof_coordinates()
 dof_coordinates.resize((n, d))
 
+print('About to store XX, AA, ...')
 np.save('XX3d', dof_coordinates)
 np.save('AA3d', AA3d)
 np.save('BB3d', BB3d)
 np.save('BB3dv', BB3dv)
 np.save('T03d', np.array([T0.vector().get_local()]).T)
+
+print('About to create T03d.pvd')
+ofile = File("T03d.pvd")
+ofile << T0
