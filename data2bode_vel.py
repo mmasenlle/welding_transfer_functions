@@ -10,9 +10,9 @@ a=k/(rho*cp)
 q=1000
 
 
-ops=np.load('output_points_vel.npy')
+ops=np.load('data/output_points_vel.npy')
 
-X=np.load('output_data_vel.npy')
+X=np.load('data/output_data_vel.npy')
 
 # plt.plot(X[:1000,2])
 dt = X[1,0]-X[0,0]

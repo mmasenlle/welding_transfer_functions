@@ -1,4 +1,4 @@
-#  docker run -ti -v C:/src/sympy:/home/fenics/shared -w /home/fenics/shared quay.io/fenicsproject/stable:current
+#  docker run -ti -v C:/src/sympy:/home/fenics/shared fenics1
 import sys
 from dolfin import *
 import numpy as np
@@ -12,12 +12,16 @@ def on_message(mqttc, obj, msg):
 mqtt_client=None
 b_mqtt = True
 if b_mqtt:
-    import paho.mqtt.client as mqtt
-    mqtt_client = mqtt.Client()
-    mqtt_client.on_message = on_message
-    mqtt_client.connect('172.24.1.45')
-    mqtt_client.subscribe("ctrl3d_cmd", 0)
-    mqtt_client.loop_start()
+    try:
+        import paho.mqtt.client as mqtt
+        mqtt_client = mqtt.Client()
+        mqtt_client.on_message = on_message
+        mqtt_client.connect('172.24.1.45')
+        mqtt_client.subscribe("ctrl3d_cmd", 0)
+        mqtt_client.loop_start()
+    except:
+        print("Cant connect mqtt broker")
+        b_mqtt = False
 
 # Create mesh and function space
 # mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 320, 160, 40)
@@ -37,26 +41,32 @@ v = TestFunction(V)
 u0 = Constant(0.0)
 bc = DirichletBC(V, u0, DirichletBoundary())
 
-Pot=1500
+# Pot=1500
 ipx=.02
 ipy=.02
 inp = Point(ipx,ipy,.0)
 
 v_nom = 0.005
 
-# Equilibrium
-Pot=1481.6279283811557
-v_nom=0.004253872403429254
+# # Equilibrium
+# Pot=1481.6279283811557
+# v_nom=0.004253872403429254
+#
+#
+# k = Constant(24)
+# rho = Constant(7925)
+# #Pot=2
+# #k = Constant(0.000024)
+# #rho = Constant(0.007925)
+# Cp = Constant(460)
 
 
-k = Constant(24)
-rho = Constant(7925)
-#Pot=2
-#k = Constant(0.000024)
-#rho = Constant(0.007925)
-Cp = Constant(460)
-
-
+# system from references isotherms
+k = Constant(60)
+rho = 7870
+Cp = 2719
+Pot = 7500
+v_nom = 0.005
 vel = Constant((v_nom,0,0))
 
 
@@ -80,10 +90,18 @@ d = mesh.geometry().dim()
 dof_coordinates = V.tabulate_dof_coordinates()
 dof_coordinates.resize((n, d))
 
-T1ref=1000
-T2ref=400
-p1=Point(0.03,0.02,0)
-p2=Point(0.02,0.025,0)
+# T1ref=1000
+# T2ref=400
+# p1=Point(0.03,0.02,0)
+# p2=Point(0.02,0.025,0)
+
+# isotherms 1200
+# T(0.034018,0.02,0): 1199.997701
+# T(0.02,0.022354,0): 1198.289010
+T1ref=1200
+T2ref=1200
+p1=Point(0.034018,0.02,0)
+p2=Point(0.02,0.022354,0)
 
 # transitorio
 u_prev = u1 #interpolate(u0, V)
@@ -106,8 +124,26 @@ ctrl1 = filter1.Filter1((0,ctrl1_d.num[0][0][0]),ctrl1_d.den[0][0])
 ctrl2_d = control.sample_system(control.tf(-0.0001, (1, 0)), dt)
 ctrl2 = filter1.Filter1((0,ctrl2_d.num[0][0][0]),ctrl2_d.den[0][0])
 
+# Controllers Jorge MF=30
+ctrl1_d = control.sample_system(control.tf((2, 2.6), (1.3, 0)), dt)
+ctrl1 = filter1.Filter1(ctrl1_d.num[0][0],ctrl1_d.den[0][0])
+ctrl2_d = control.sample_system(control.tf((-0.0001021,-0.0004546), (4.453, 45.46, 0)), dt)
+ctrl2 = filter1.Filter1((0,ctrl2_d.num[0][0][0],ctrl2_d.num[0][0][1]),ctrl2_d.den[0][0])
+
+# Controllers Jorge MF=40
+ctrl1_d = control.sample_system(control.tf((1, 3), (3, 0)), dt)
+ctrl1 = filter1.Filter1(ctrl1_d.num[0][0],ctrl1_d.den[0][0])
+ctrl2_d = control.sample_system(control.tf(-5e-06, (1, 1, 0)), dt)
+ctrl2 = filter1.Filter1((0,ctrl2_d.num[0][0][0],ctrl2_d.num[0][0][1]),ctrl2_d.den[0][0])
+
+
+
 # Perturbations
-k = Constant(18)
+# k = Constant(18)
+# Step
+T1ref += 10
+T2ref += 10
+
 
 output_data = np.array([t,Pot,v_nom,u1(p1),u1(p2)])
 
@@ -148,5 +184,5 @@ while t <= T:
 # np.save('output_data_vel_' + str(MPI.COMM_WORLD.Get_rank()), output_data)
 # for op in o_points:
 #     print("T(", *op, ",t=",T,"):", uf(*op), "K")
-np.save('ctrl_data', output_data)
+np.save('ctrl_data_step_MF40', output_data)
 print("Tmax:", np.max(uf.vector().get_local()), "K")

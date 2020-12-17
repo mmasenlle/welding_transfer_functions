@@ -22,7 +22,7 @@ u0 = Constant(0.0)
 bc = DirichletBC(V, u0, DirichletBoundary())
 
 Lz=.01
-Pot=1000/Lz
+Pot=2000/Lz
 ipx=.02
 ipy=.02
 inp = Point(ipx,ipy)

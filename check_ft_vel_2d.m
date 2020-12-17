@@ -1,6 +1,6 @@
 clear all; clc; close all;
 
-load('ss_vars_2d')
+load('ss_vars_2d_v002_q100000')
 
 w = logspace(-3,2,100);
 
