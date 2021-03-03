@@ -1,8 +1,11 @@
+# docker run -ti -v C:/src/sympy:/home/fenics/shared -w /home/fenics/shared fenics1
 from dolfin import *
 import numpy as np
 
 # Create mesh and function space
-mesh = RectangleMesh(Point(0.0, 0.0), Point(.16, .04), 64, 16)
+# mesh = RectangleMesh(Point(0.0, 0.0), Point(.16, .04), 64, 16)
+# mesh = RectangleMesh(Point(0.0, 0.0), Point(.16, .04), 256, 64)
+mesh = Mesh('meshes/box2d_2.xml')
 # np.save('mesh_X',mesh.coordinates())
 # np.save('mesh_cells',mesh.cells())
 
@@ -22,7 +25,7 @@ u0 = Constant(0.0)
 bc = DirichletBC(V, u0, DirichletBoundary())
 
 Lz=.01
-Pot=1000/Lz
+Pot=2000/Lz
 ipx=.02
 ipy=.02
 inp = Point(ipx,ipy)
@@ -33,7 +36,7 @@ rho = Constant(7925)
 #k = Constant(0.000024)
 #rho = Constant(0.007925)
 Cp = Constant(460)
-h = Constant(1000)
+h = Constant(0) #Constant(1000)
 
 v_nom = 0.002
 vel = Constant((v_nom,0))
@@ -118,4 +121,4 @@ vars['C_25_00'] = get_C((.045,.02))
 vars['C_30_00'] = get_C((.05,.02))
 vars['C_40_00'] = get_C((.06,.02))
 import scipy.io
-scipy.io.savemat('ss_vars_2d_.mat', vars)
+scipy.io.savemat('ss_vars_2d_gmsh_.mat', vars)

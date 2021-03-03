@@ -7,7 +7,8 @@ from mpi4py import MPI
 
 
 # Create mesh and function space
-mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 128, 64, 16)
+# mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 128, 64, 16)
+mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 32, 16, 4)
 V = FunctionSpace(mesh, "CG", 1)
 
 # Sub domain for Dirichlet boundary condition
@@ -93,7 +94,7 @@ t = 0.0
 output_data = np.array([t,Pot,v_nom]+[u1.vector()[i] for i in opidx])
 
 N = 1024*1024
-N = 16
+N = 1024
 dt = .001
 T = N*dt
 freq = .0

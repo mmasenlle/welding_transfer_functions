@@ -26,13 +26,17 @@ if b_mqtt:
 # Create mesh and function space
 # mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(.08, .04, .01), 320, 160, 40)
 # mesh = Mesh('meshes/box.xml') # mas preciso
-mesh = Mesh('../meshes/box2.xml') # menos puntos para crear ss a usar en matlab
+mesh = Mesh('../meshes/box_rev_symm.xml') # menos puntos para crear ss a usar en matlab
 V = FunctionSpace(mesh, "CG", 1)
 
 # Sub domain for Dirichlet boundary condition
 class DirichletBoundary(SubDomain):
     def inside(self, x, on_boundary):
         return on_boundary and x[0] < DOLFIN_EPS
+
+class DirichletBoundary2(SubDomain):
+    def inside(self, x, on_boundary):
+        return on_boundary and x[0] > (0.12 - DOLFIN_EPS)
 
 # Define variational problem
 u = TrialFunction(V)
@@ -43,8 +47,8 @@ u0 = Constant(0.0)
 bc = DirichletBC(V, u0, DirichletBoundary())
 
 # Pot=1500
-ipx=.02
-ipy=.02
+ipx=.06
+ipy=.0
 inp = Point(ipx,ipy,.0)
 
 v_nom = 0.005
@@ -105,8 +109,8 @@ T2ref=1200
 # p1=Point(0.036639,0.02,0)
 # p2=Point(0.02,0.022333,0)
 # box2
-p1=Point(0.034018,0.02,0)
-p2=Point(0.02,0.022354,0)
+p1=Point(0.06 + 0.014018,0,0)
+p2=Point(0.06,0.002354,0)
 
 # transitorio
 u_prev = u1 #interpolate(u0, V)
@@ -149,10 +153,13 @@ ctrl2 = filter1.Filter1(ctrl2_d.num[0][0], ctrl2_d.den[0][0])
 
 output_data = np.array([t,Pot,v_nom,u1(p1),u1(p2)])
 
-ofile = File("T3D.pvd")
+ofile = File("T3Drsymm.pvd")
 ofile << u_prev, t
 
+exit(7)
+
 tn=1
+kt=10
 T1,T2=u_prev(p1),u_prev(p2)
 er1,er2=T1ref - T1,T2ref - T2
 print("T1:", T1, "T2:", T2)
@@ -166,7 +173,9 @@ stable=0
 # upert = u_prev.vector().get_local() + 100
 # u_prev.vector().set_local(upert)
 vdir = -1.0
-p1=Point(0.005982,0.02,0)
+# p1=Point(0.005982,0.02,0)
+p1=Point(0.06 - 0.014018,0.02,0)
+# vdir = 1
 
 while t <= T:
     t += dt
@@ -176,7 +185,7 @@ while t <= T:
     L = rho*Cp*u_prev*v*dx
     b = assemble(L, tensor=b)
     A = assemble(a)
-    bc.apply(A, b)
+    # bc.apply(A, b)
     delta = PointSource(V, inp, dt*Pt)
     delta.apply(b)
     solve(A, uf.vector(), b)
@@ -193,12 +202,17 @@ while t <= T:
             break
     else:
         stable = 0
-    if t*10 >= tn:
+    if t*kt >= tn:
         print("t=", round(t,3), 'of', T, 'seconds')
         # print("er1:", er1, "er2:", er2, "norm(er):", (er1**2+er2**2))
         tn += 1
-        if t < 5:
-            ofile << u_prev, t
+        if t > 5 and kt == 10:
+            kt = 1
+            tn = int(t*kt) + 1
+        if t > 25 and kt == 1:
+            kt = .1
+            tn = int(t*kt) + 1
+        ofile << u_prev, t
 
 ofile << u_prev, t
 # print ("];", file=sys.stderr)
