@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-cd = np.load('test_ctrl/ctrl_data_test_2x2.npy')
+cd = np.load('test_open/open_loop_data.npy')
 # cd = np.load('data/ctrl_data_pert.npy')
 fig = plt.figure('Control 1')
 labels_unit_scale=(('Power','(w)',15000,0),('Speed','(m/s)',0.02,-0.02),('T1','(ºC)',2000,0),('T2','(ºC)',2000,0))

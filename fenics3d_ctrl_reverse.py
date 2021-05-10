@@ -103,6 +103,37 @@ d = mesh.geometry().dim()
 dof_coordinates = V.tabulate_dof_coordinates()
 dof_coordinates.resize((n, d))
 
+p1=Point(0.06 + 0.014534,0.02,0)
+p2=Point(0.06,0.022353,0)
+
+save_ss = True
+if save_ss:
+    K, f = assemble_system(a1, L1, bc)
+    delta.apply(f)
+    a = rho*Cp*u*v*dx
+    C = assemble(a)
+    # bc.apply(C)
+
+    # gT0 = project(T0.dx(0), V)
+
+    a = rho*Cp*inner(Constant((1,0,0)), nabla_grad(u))*v*dx
+    Kv = assemble(a)
+    # bc.apply(Kv)
+
+    print('About to solve AA')
+    AA3d = - np.linalg.solve(C.array(), K.array())
+    BB3d = np.array([np.linalg.solve(C.array(), f.get_local() / Pot)]).T
+    BB3dv = - np.array([np.linalg.solve(C.array(), Kv.array() @ u1.vector().get_local())]).T
+
+    print('About to store XX, AA, ...')
+    np.save('XX3d', dof_coordinates)
+    np.save('AA3d', AA3d)
+    np.save('BB3d', BB3d)
+    np.save('BB3dv', BB3dv)
+    np.save('T03d', np.array([u1.vector().get_local()]).T)
+    np.save('p1', np.array((p1[0],p1[1],p1[2])))
+    np.save('p2', np.array((p2[0], p2[1], p2[2])))
+
 # T1ref=1000
 # T2ref=400
 # p1=Point(0.03,0.02,0)
@@ -118,8 +149,7 @@ T2ref=1200
 # p2=Point(0.02,0.022333,0)
 
 # box2
-# p1=Point(0.06 + 0.014534,0.02,0)
-p1=Point(0.06 - 0.001448,0.02,0)
+p1=Point(0.06 + 0.014534,0.02,0)
 p2=Point(0.06,0.022353,0)
 
 # transitorio
@@ -135,7 +165,7 @@ uf = Function(V)
 
 t = 0.0
 dt = .01
-T = 150
+T = 50
 
 # # Controllers
 # ctrl1_d = control.sample_system(control.tf(2, (1, 0)), dt)
@@ -164,8 +194,10 @@ ctrl2 = filter1.Filter1(ctrl2_d.num[0][0], ctrl2_d.den[0][0])
 
 output_data = np.array([t,Pot,v_nom,u1(p1),u1(p2)])
 
-ofile = File("T3Dr_c2.pvd")
-ofile << u_prev, t
+save_pvd = False
+if save_pvd:
+    ofile = File("T3Dr_c2.pvd")
+    ofile << u_prev, t
 
 tn=1
 kt=10
@@ -183,16 +215,15 @@ stable=0
 # u_prev.vector().set_local(upert)
 vdir = -1.0
 # p1=Point(0.005982,0.02,0)
-# p1=Point(0.06 - 0.014534,0.02,0)
-p1=Point(0.06 + 0.001448,0.02,0)
+p1=Point(0.06 - 0.014534,0.02,0)
 # vdir = 1
 
 while t <= T:
     t += dt
-    Pt = Pot + ctrl1.step(er1)
-    vt = (v_nom + ctrl2.step(er2)) * vdir
-    # Pt = Pot
-    # vt = v_nom * vdir
+    # Pt = Pot + ctrl1.step(er1)
+    # vt = (v_nom + ctrl2.step(er2)) * vdir
+    Pt = Pot
+    vt = v_nom * vdir
     a = rho*Cp*u*v*dx + dt*k*inner(nabla_grad(u), nabla_grad(v))*dx + dt*rho*Cp*inner(Constant((vt,0,0)), nabla_grad(u))*v*dx
     L = rho*Cp*u_prev*v*dx
     b = assemble(L, tensor=b)
@@ -225,13 +256,50 @@ while t <= T:
         if t > 25 and kt == 1:
             kt = .1
             tn = int(t*kt) + 1
-        ofile << u_prev, t
+        if save_pvd:
+            ofile << u_prev, t
 
-ofile << u_prev, t
+if save_pvd:
+    ofile << u_prev, t
 # print ("];", file=sys.stderr)
 # np.save('output_data_vel_' + str(MPI.COMM_WORLD.Get_rank()), output_data)
 # for op in o_points:
 #     print("T(", *op, ",t=",T,"):", uf(*op), "K")
-np.save('ctrl_data_test_2x2_front', output_data)
+np.save('open_loop_data', output_data)
 print("Tmax:", np.max(uf.vector().get_local()), "K")
 print('T1:', T1, 'T2:', T2, 'Pt:', Pt, 'vt:', vt)
+
+if save_ss:
+    np.save('T03dr', np.array([uf.vector().get_local()]).T)
+    # vel = Constant((-v_nom, 0, 0))
+    # a1 = k * inner(nabla_grad(u), nabla_grad(v)) * dx + rho * Cp * inner(vel, nabla_grad(u)) * v * dx
+    # L1 = Constant(0) * v * dx
+    #
+    # K, f = assemble_system(a1, L1, bc2)
+    # delta.apply(f)
+    # T0 = Function(V)
+    # solve(K, T0.vector(), f)
+    #
+    # a = rho * Cp * u * v * dx
+    # C = assemble(a)
+    # # bc.apply(C)
+    #
+    # # gT0 = project(T0.dx(0), V)
+    #
+    # a = rho * Cp * inner(Constant((1, 0, 0)), nabla_grad(u)) * v * dx
+    # Kv = assemble(a)
+    # # bc.apply(Kv)
+    #
+    # print('About to solve AA')
+    # AA3d = - np.linalg.solve(C.array(), K.array())
+    # BB3d = np.array([np.linalg.solve(C.array(), f.get_local() / Pot)]).T
+    # BB3dv = - np.array([np.linalg.solve(C.array(), Kv.array() @ T0.vector().get_local())]).T
+    #
+    # print('About to store XX, AA, ...')
+    # np.save('XX3dr', dof_coordinates)
+    # np.save('AA3dr', AA3d)
+    # np.save('BB3dr', BB3d)
+    # np.save('BB3dvr', BB3dv)
+    # np.save('T03dr', np.array([T0.vector().get_local()]).T)
+    # np.save('p1r', np.array((p1[0], p1[1], p1[2])))
+    # np.save('p2r', np.array((p2[0], p2[1], p2[2])))
