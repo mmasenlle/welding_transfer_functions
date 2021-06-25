@@ -2,8 +2,9 @@ import numpy as np
 
 class Filter1:
     def __init__(self, b, a):
-        self.b = np.array(b)
         self.a = np.array(a)
+        self.b = np.zeros(self.a.size)
+        self.b[self.b.size - len(b):] = b
         self.x = np.zeros(self.b.size - 1)
     def step(self, u):
         y = (self.b[0] * u) + self.x[0]

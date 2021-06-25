@@ -20,26 +20,26 @@ vars['od'] = np.load('test_open/open_loop_data.npy')
 vars['T0'] = np.load('test_open/T03d.npy')
 vars['T0r'] = np.load('test_open/T03dr.npy')
 
-# X_xo = fem2ss.X - np.array(p2)
-# idx = np.argwhere(np.all((X_xo) == 0, axis=1))
-#
-# dist = np.sqrt(X_xo[:,0]**2 + X_xo[:,1]**2 + X_xo[:,2]**2)
-# idx = np.argpartition(dist, 2)[:2]
-# fem2ss.X[idx]
-# fem2ss.Teq[idx[:]]
-#
-# distp = np.prod(dist[idx])
-# C = np.zeros(fem2ss.X.shape[0])
-# C[idx] = (distp/np.sum(distp/dist[idx])) / dist[idx]
-# C @ fem2ss.Teq
-# C @ vars['T0']
-# C @ vars['T0r']
-# vars['C1'] @ vars['T0']
-# vars['C1'] @ vars['T0r']
-# vars['C2'] @ vars['T0']
-# vars['C2'] @ vars['T0r']
-# vars['od'][-2:]
+vars['AAA'] = np.load('test_open/AAA.npy')
+vars['BB'] = np.load('test_open/BB.npy')
+vars['BBv'] = np.load('test_open/BBv.npy')
+vars['TT0'] = np.load('test_open/TT0.npy')
+vars['TT0r'] = np.load('test_open/TT0r.npy')
 
 
 import scipy.io
-scipy.io.savemat('ss_vars_reverse.mat', vars)
+# scipy.io.savemat('ss_vars_reverse.mat', vars)
+scipy.io.savemat('ss_plants2.mat', vars)
+
+
+vars={}
+import numpy as np
+vars['cd'] = np.load('ctrl_qft_manu3.npy')
+import scipy.io
+scipy.io.savemat('ctrl_qft_manu3_001.mat', vars)
+
+# vars={}
+# vars['step10'] = np.load('test_open/ctrl_steps_data.npy')
+# vars['step100'] = np.load('test_open/ctrl_steps_data100.npy')
+# import scipy.io
+# scipy.io.savemat('ctrl_steps.mat', vars)
