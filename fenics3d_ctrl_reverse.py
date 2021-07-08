@@ -222,16 +222,36 @@ T = 50
 # flt2_d = control.sample_system(control.tf((.02,), (1, 5, 4)), dt)
 # flt2 = filter1.Filter1(flt2_d.num[0][0], flt2_d.den[0][0])
 
-# Controllers and filters QFT manu 3
-ctrl1_d = control.sample_system(control.tf((10,), (1, 10, 0)), dt)
-ctrl1 = filter1.Filter1(ctrl1_d.num[0][0], ctrl1_d.den[0][0])
-ctrl2_d = control.sample_system(control.tf((-0.0002,-0.00065,-0.000375), (1.875, 189.4, 187.5, 0)), dt)
-ctrl2 = filter1.Filter1(ctrl2_d.num[0][0], ctrl2_d.den[0][0])
-flt1_d = control.sample_system(control.tf((-50000,), (1, 10.1, 1)), dt)
-flt1 = filter1.Filter1(flt1_d.num[0][0], flt1_d.den[0][0])
-flt2_d = control.sample_system(control.tf((.0114,), (1, 3.8)), dt)
-flt2 = filter1.Filter1(flt2_d.num[0][0], flt2_d.den[0][0])
+# # Controllers and filters QFT manu 3
+# ctrl1_d = control.sample_system(control.tf((10,), (1, 10, 0)), dt)
+# ctrl1 = filter1.Filter1(ctrl1_d.num[0][0], ctrl1_d.den[0][0])
+# ctrl2_d = control.sample_system(control.tf((-0.0002,-0.00065,-0.000375), (1.875, 189.4, 187.5, 0)), dt)
+# ctrl2 = filter1.Filter1(ctrl2_d.num[0][0], ctrl2_d.den[0][0])
+# # flt1_d = control.sample_system(control.tf((-50000,), (1, 10.1, 1)), dt)
+# flt1_d = control.sample_system(control.tf((-78750,), (1, 8.85, 21.91, 13.59, 1.575)), dt)
+# flt1 = filter1.Filter1(flt1_d.num[0][0], flt1_d.den[0][0])
+# flt2_d = control.sample_system(control.tf((.0114,), (1, 3.8)), dt)
+# flt2 = filter1.Filter1(flt2_d.num[0][0], flt2_d.den[0][0])
 
+# Controllers and filters QFT manu 4
+# ctrl1_d = control.sample_system(control.tf((0.2,), (1, 0)), dt)
+# ctrl1 = filter1.Filter1(ctrl1_d.num[0][0], ctrl1_d.den[0][0])
+# ctrl2_d = control.sample_system(control.tf((-3e-7,), (1, 0)), dt)
+# ctrl2 = filter1.Filter1(ctrl2_d.num[0][0], ctrl2_d.den[0][0])
+# flt1_d = control.sample_system(control.tf((-1912,), (1, 5.32, 1.626, 0.1275)), dt)
+# flt1 = filter1.Filter1(flt1_d.num[0][0], flt1_d.den[0][0])
+# flt2_d = control.sample_system(control.tf((0.0096,), (1, 1.6)), dt)
+# flt2 = filter1.Filter1(flt2_d.num[0][0], flt2_d.den[0][0])
+
+# Controllers and filters QFT manu 5
+ctrl1_d = control.sample_system(control.tf((0.2,), (1, 0)), dt)
+ctrl1 = filter1.Filter1(ctrl1_d.num[0][0], ctrl1_d.den[0][0])
+ctrl2_d = control.sample_system(control.tf((-1e-6,), (1, 0)), dt)
+ctrl2 = filter1.Filter1(ctrl2_d.num[0][0], ctrl2_d.den[0][0])
+flt1_d = control.sample_system(control.tf((-30000,), (1, 10.1, 1)), dt)
+flt1 = filter1.Filter1(flt1_d.num[0][0], flt1_d.den[0][0])
+# flt2_d = control.sample_system(control.tf(0, 0), dt)
+# flt2 = filter1.Filter1(flt2_d.num[0][0], flt2_d.den[0][0])
 
 output_data = np.array([t,Pot,v_nom,u1(p1),u1(p2),0,0])
 
@@ -263,7 +283,7 @@ impul = 1/dt
 while t <= T:
     t += dt
     Pff = flt1.step(impul)
-    vff = flt2.step(impul)
+    vff = 0 #flt2.step(impul)
     Pt = Pot + ctrl1.step(er1) + Pff
     vt = (v_nom + ctrl2.step(er2) + vff) * vdir
     impul = 0
@@ -310,7 +330,7 @@ if save_pvd:
 # np.save('output_data_vel_' + str(MPI.COMM_WORLD.Get_rank()), output_data)
 # for op in o_points:
 #     print("T(", *op, ",t=",T,"):", uf(*op), "K")
-np.save('ctrl_qft_manu3', output_data)
+np.save('ctrl_qft_manu5', output_data)
 print("Tmax:", np.max(uf.vector().get_local()), "K")
 print('T1:', T1, 'T2:', T2, 'Pt:', Pt, 'vt:', vt)
 

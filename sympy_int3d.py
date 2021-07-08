@@ -9,3 +9,11 @@ from sympy import *
 # print('F=',F)
 #
 # # Fx = ((e^(-(z_1+z)^2/b)+e^(-(z_1-z)^2/b))*(-c*x*sqrt(x^2+z^2+y^2)+c*x^2-x+c*z^2+c*y^2)*e^(c*(x_1-x)-((x_1-x)^2+(y_1-y)^2)/b))/(x^2+z^2+y^2)^(3/2)
+
+
+# Mathematica
+dT=(c*x^2-x+c*y^2+c*z^2-c*x*(x^2+y^2+z^2)^(1/2))/((x^2+y^2+z^2)^(1/2))^3
+G=E^(c*(x1-x)-((x1-x)^2+(y1-y)^2)/b)*(E^(-(z1+z)^2/b)+E^(-(z1-z)^2/b))
+f=G*dT
+F=Integrate[f,{x,-1000,1000},{y,-1000,1000},{z,0,1000}]
+F=Integrate[f,x,y,{z,0,Infinity}]

@@ -34,9 +34,9 @@ scipy.io.savemat('ss_plants2.mat', vars)
 
 vars={}
 import numpy as np
-vars['cd'] = np.load('ctrl_qft_manu3.npy')
+vars['cd'] = np.load('ctrl_qft_manu4.npy')
 import scipy.io
-scipy.io.savemat('ctrl_qft_manu3_001.mat', vars)
+scipy.io.savemat('ctrl_qft_manu5.mat', vars)
 
 # vars={}
 # vars['step10'] = np.load('test_open/ctrl_steps_data.npy')
